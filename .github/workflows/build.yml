@@ -1,25 +1,59 @@
-name: Build Calculator APK
+name: Build Android APK
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Build APK
-        uses: ArtemSBulgakov/buildozer-action@v1
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          workdir: .
+          python-version: '3.10'
 
-      - name: Save APK
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+              python3-pip \
+              build-essential \
+              git \
+              python3-dev \
+              ffmpeg \
+              libsdl2-dev \
+              libsdl2-image-dev \
+              libsdl2-mixer-dev \
+              libsdl2-ttf-dev \
+              libportmidi-dev \
+              libswscale-dev \
+              libavformat-dev \
+              libavcodec-dev \
+              zlib1g-dev \
+              libgstreamer1.0-dev \
+              gstreamer1.0-plugins-base \
+              gstreamer1.0-plugins-good \
+              openjdk-17-jdk
+
+      - name: Install Buildozer and Cython
+        run: |
+          pip install --upgrade pip
+          pip install Cython==0.29.33
+          pip install buildozer
+
+      - name: Build APK with Buildozer
+        run: |
+          buildozer -v android debug
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Calculator-APK
+          name: package
           path: bin/*.apk
+          
